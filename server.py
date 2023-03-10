@@ -122,7 +122,7 @@ def get_entity(entity):
 def clear():
     '''Clear the world out!'''
     clear = myWorld.clear()
-    return jsonify(clear)
+    return jsonify({}) #return empty {} not null
 
 if __name__ == "__main__":
     app.run()
