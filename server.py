@@ -22,7 +22,7 @@
 
 
 import flask
-from flask import Flask, request
+from flask import Flask, request,redirect,jsonify
 import json
 app = Flask(__name__)
 app.debug = True
@@ -71,30 +71,58 @@ def flask_post_json():
     else:
         return json.loads(request.form.keys()[0])
 
+'''
+Resource used (to redirect in flask)
+Link:https://stackoverflow.com/questions/14343812/redirecting-to-url-in-flask
+Asked by (on Jan. 15, 2013):https://stackoverflow.com/users/1426157/ijade
+Answer by (on Jan 15, 2013):https://stackoverflow.com/users/128629/xavier-combelle
+License: CC BY-SA 3.0
+
+Resource used (to return data in flask and response code)
+Link: https://stackoverflow.com/questions/45412228/sending-json-and-status-code-with-a-flask-response
+Asked by (on July 31,2017): https://stackoverflow.com/users/7035592/febin-peter
+Answer by (July 31,2017): https://stackoverflow.com/users/2770850/nabin
+License: CC BY-SA 3.0
+'''
 @app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    return redirect("/static/index.html",code=302)
 
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+    requestBody = flask_post_json() #still works for "PUT method"
+   
+    '''
+    Resourced used
+    link: https://www.w3schools.com/python/gloss_python_loop_dictionary_items.asp
+    No mentioned author or publication date
+    '''
+    for key,value in requestBody.items():
+        myWorld.update(entity,key,value)
+    
+    getEntity =  myWorld.get(entity)
+    
+    return jsonify(getEntity)
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return None
+    world = myWorld.world()
+    return jsonify(world)
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return None
+    getEntity = myWorld.get(entity)
+    return jsonify(getEntity)
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
-    return None
+    clear = myWorld.clear()
+    return jsonify(clear)
 
 if __name__ == "__main__":
     app.run()

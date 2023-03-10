@@ -39,23 +39,56 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             try {
                 if (xhr.status==200) {
                     //XXX: parse some JSON from the request!
+                    /*
+                    Link: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/response
+                    License: CC0 1.0 Universal (CC0 1.0)
+                    Author: No single author (Mozilla Contributors)
+                    */
+
+                    var parsedData  = JSON.parse(xhr.response)
                     //XXX: Pass the data to the callback!
+                    //I assume "callback" refers to the 3rd parameter
+                    callback(parsedData)
                 }
             } 
             catch(e) {
+                
                 alert('Error: ' + e.name);
             }
         }
     };
     //XXX: POST to a URL
+    /*
+    Link: https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/send
+    License: CC0 1.0 Universal (CC0 1.0)
+    Author: No single author (Mozilla Contributors)
+    */
+    xhr.open("POST",url,true)
     //XXX: set the mimetype and the accept headers!
     // Remember to use application/json !
+    xhr.setRequestHeader("Content-Type","application/json")
+    xhr.setRequestHeader("Accept","application/json")
+    
+    xhr.send(JSON.stringify(objects))
 }
 
 
 world = {};
 
 //XXX: TODO Make this prettier!
+//I tried to make a happy face (it's not very pretty)
+
+/*
+Link to make happy face: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Drawing_shapes
+Resource found in the section "Moving the pen"
+License: CC0 1.0 Universal (CC0 1.0)
+Author: No single author (Mozilla Contributors)
+
+Link (drawing a circle inside another circle): https://stackoverflow.com/questions/18819234/drawing-a-circle-inside-another-circle-canvas
+Asked by (on Sept. 16, 2013): https://stackoverflow.com/users/1623935/conqueror
+Answer by (on Sept.16, 2013): https://stackoverflow.com/users/1229023/raina77ow
+License: CC BY-SA 3.0
+*/
 function drawCircle(context,entity) {
     with(context) {
         beginPath();              
@@ -65,8 +98,20 @@ function drawCircle(context,entity) {
         //moveTo(x,y);
         fillStyle = entity["colour"];
         strokeStyle = fillStyle;
-        arc(x, y, (entity["radius"])?entity["radius"]:50, 0, 2.0 * Math.PI, false);  
-        stroke();                                
+        arc(x, y, 30, 0, 2.0 * Math.PI, false);  
+        stroke();
+        
+        beginPath();
+        arc(x-7, y-10, 5, 0, Math.PI * 2, true); // Right eye
+        stroke();   
+        
+        beginPath();
+        arc(x+10, y-10, 5, 0, Math.PI * 2, true); // Left eye
+        stroke();
+
+        beginPath();
+        arc(x+5, y+10, 9,0 , Math.PI, false); // Mouth 
+        stroke();
     }
 }
 
@@ -138,6 +183,13 @@ function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
     //XXX: Send a XHTML Request that updates the entity you just  modified!
+
+    /*Resource used (to return empty function)
+    Link:https://quickref.me/create-an-empty-function
+    */
+    url  = `http://${host}/entity/${entity}`
+    const call = (object) => {};
+    sendJSONXMLHTTPRequest(url,data,call)
 
 }
 
@@ -246,23 +298,40 @@ mouse = (function() {
 
 // Add the application specific mouse listeners!
 //XXX: TODO Make these prettier!
+/*
+   Source used: https://css-tricks.com/snippets/javascript/random-hex-color/
+   Author: Chris Coyier
+   Published on: Dec 10,2009 (edited on Feb 19,2020)
+   License not found
+*/
 mouse.mousedowners.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'blue'});
+    var colour = Math.floor(Math.random()*16777215).toString(16);
+    addEntityWithoutName({'x':x,'y':y,'colour':`#${colour}`});
 });
 
 mouse.mouseuppers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'red'});
+    var colour = Math.floor(Math.random()*16777215).toString(16);
+    addEntityWithoutName({'x':x,'y':y,'colour':`#${colour}`});
 });
 
 mouse.mousedraggers.push(function(x,y,clicked,e) {
-    addEntityWithoutName({'x':x,'y':y,'colour':'green',
-                          'radius':10});
+    var colour = Math.floor(Math.random()*16777215).toString(16);
+    addEntityWithoutName({'x':x,'y':y,'colour':`#${colour}`,
+                          });
 });
 
 
 function update() {
     //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
+    url  = `http://${host}/world`
     drawFrame();
+    const getWorld = (objects) =>{
+        world = objects;
+    }
+    drawNextFrame();
+    
+    sendJSONXMLHTTPRequest(url,{},getWorld);
+        
 }
 
 // 30 frames per second
